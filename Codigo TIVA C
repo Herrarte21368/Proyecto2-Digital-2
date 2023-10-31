@@ -45,10 +45,16 @@ extern uint8_t fondo[];
 
 //boton para tomar el valor del sensor
 #define Boton1 31
+#define Boton2 17
 
 int esactual = LOW;
 int esanterior = LOW;
 int estadobtn;
+
+#define SCK PA_2
+#define MISO PA_4
+#define MOSI PA_5
+#define SS PA_3
 
 //Antirrebote dell boton para que colecte un solo dato al presionar 
 unsigned long lastDebounceTime = 0;
@@ -58,6 +64,10 @@ float temp3 = 0.0;
 int unidades = 0;
 int decenas = 0;
 int decimal = 0;
+float voltage = 0;
+
+const int ChipSelect = SS;
+File myFile; 
 
 void setup(){
   Serial.begin(115200);
