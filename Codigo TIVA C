@@ -72,17 +72,30 @@ File myFile;
 void setup(){
   Serial.begin(115200);
   Serial2.begin(115200);
+  SPI.setModule(0); 
+
   SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
   GPIOPadConfigSet(GPIO_PORTB_BASE, 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
   LCD_Init();
   LCD_Clear(0XFFFF);
   pinMode(Boton1, INPUT_PULLUP);
+  pinMode(Boton2, INPUT_PULLUP);
+  pinMode(ChipSelect, OUTPUT);
+  
 
   //FillRect(0, 0, 319, 206, 0x421b);
   String text1 = "Temperatura";
   LCD_Print(text1, 35, 70, 2, 0x00, 0xFFFF);
     
   LCD_Bitmap(240, 40, 40, 171, TERMO1);
+
+  Serial.println("Inciando SD");
+
+  if (!SD.begin(ChipSelect)){
+    Serial.println("Inicializacin fallida");
+    return;
+  }
+  Serial.println("SD inicializada");
 }
 
 void loop(){
@@ -128,10 +141,27 @@ void loop(){
     LCD_Print(ki, 94, 125, 2,  0x00, 0xFFFF);
     LCD_Print(deci, 104, 125, 2, 0x00, 0xFFFF);
     LCD_Print(text1, 35, 70, 2, 0x00, 0xFFFF);    
-    LCD_Bitmap(240, 40, 40, 171, TERMO1);
-      
-    
+    LCD_Bitmap(240, 40, 40, 171, TERMO1); 
   }
+//*************************************************************************************
+//Configuracion de comunicacion serial para el boton 2 ********************************
+   if(Serial.available()){
+    guardarserial = Serial.read();
+    }
+   if (digitalRead(Boton2) == LOW){
+    myFile = SD.open("Datos.txt", FILE_WRITE);
+
+    if (myFile){
+      String dataString = String(guardarserial);
+      myFile.println(dataString);
+      myFile.close();
+      Serial.println("informacion guardada");
+      delay(250);
+    }else{
+      Serial.println("Error de almacenemiento");
+      delay(250);
+    }    
+   }
   
 
 }
