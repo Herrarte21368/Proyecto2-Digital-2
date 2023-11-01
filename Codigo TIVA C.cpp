@@ -5,6 +5,7 @@
 #include <SPI.h>
 #include <SD.h> 
 
+//Librerias de la LCD
 #include <stdint.h>
 #include <stdbool.h>
 #include <TM4C123GH6PM.h>
@@ -23,6 +24,7 @@
 #include "font.h"
 #include "lcd_registers.h"
 
+//Delcaracion de pines para la pantalla LCD
 #define LCD_RST PD_0
 #define LCD_CS PD_1
 #define LCD_RS PD_2
@@ -46,7 +48,7 @@ void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int 
 extern uint8_t fondo[];
 //**************************************************************************************************************************************
 
-//boton para tomar el valor del sensor
+//boton para tomar el valor del sensor y guardarlo 
 #define Boton1 31
 #define Boton2 17
 const int buzzer = PE_0;
@@ -158,8 +160,8 @@ int guardarserial = 0;
     tone(buzzer, 500, 500);
     delay(100);
   }
-//*************************************************************************************
-//Configuracion de comunicacion serial para el boton 2 ********************************
+//*********************************************************************************************************************
+//Configuracion de comunicacion serial para el boton 2 para guardar el dato del sensor ********************************
    if(Serial.available()){
     guardarserial = Serial.read();
     }
