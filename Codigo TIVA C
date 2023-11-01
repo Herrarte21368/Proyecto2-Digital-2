@@ -2,6 +2,9 @@
 // Andree Herrarte 21368
 // Codigo TIVA C
 
+#include <SPI.h>
+#include <SD.h> 
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <TM4C123GH6PM.h>
@@ -46,6 +49,7 @@ extern uint8_t fondo[];
 //boton para tomar el valor del sensor
 #define Boton1 31
 #define Boton2 17
+const int buzzer = PE_0;
 
 int esactual = LOW;
 int esanterior = LOW;
@@ -60,10 +64,12 @@ int estadobtn;
 unsigned long lastDebounceTime = 0;
 unsigned long Debouncedelay = 50;
 
+
 float temp3 = 0.0;
 int unidades = 0;
 int decenas = 0;
 int decimal = 0;
+
 float voltage = 0;
 
 const int ChipSelect = SS;
@@ -73,7 +79,7 @@ void setup(){
   Serial.begin(115200);
   Serial2.begin(115200);
   SPI.setModule(0); 
-
+  
   SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_OSC_MAIN|SYSCTL_XTAL_16MHZ);
   GPIOPadConfigSet(GPIO_PORTB_BASE, 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
   LCD_Init();
@@ -81,6 +87,7 @@ void setup(){
   pinMode(Boton1, INPUT_PULLUP);
   pinMode(Boton2, INPUT_PULLUP);
   pinMode(ChipSelect, OUTPUT);
+  pinMode(buzzer, OUTPUT);
   
 
   //FillRect(0, 0, 319, 206, 0x421b);
@@ -92,15 +99,18 @@ void setup(){
   Serial.println("Inciando SD");
 
   if (!SD.begin(ChipSelect)){
-    Serial.println("Inicializacin fallida");
+    Serial.println("Inicializacion fallida");
     return;
   }
   Serial.println("SD inicializada");
+
 }
 
 void loop(){
+  
+int guardarserial = 0;
 
-//Configuracion de comunicacion serial 
+//Configuracion de comunicacion serial ***********************************************************
   estadobtn = digitalRead(Boton1);
 
   if (estadobtn==HIGH){
@@ -110,7 +120,8 @@ void loop(){
       esactual = estadobtn;
         Serial2.println('1');
         delay(250);
-  
+        
+ 
     }
   }
 
@@ -120,7 +131,9 @@ void loop(){
     float voltage = Serial2.parseFloat();
     Serial.print("Valor de la temperatura es: ");
     Serial.println(voltage);
-
+    guardarserial = Serial.read();
+    
+    
 //Conversion del valor flotante de la temperatura a String
     temp3 = voltage * 10;
     decenas = temp3 / 100;
@@ -141,7 +154,9 @@ void loop(){
     LCD_Print(ki, 94, 125, 2,  0x00, 0xFFFF);
     LCD_Print(deci, 104, 125, 2, 0x00, 0xFFFF);
     LCD_Print(text1, 35, 70, 2, 0x00, 0xFFFF);    
-    LCD_Bitmap(240, 40, 40, 171, TERMO1); 
+    LCD_Bitmap(240, 40, 40, 171, TERMO1);  
+    tone(buzzer, 500, 500);
+    delay(100);
   }
 //*************************************************************************************
 //Configuracion de comunicacion serial para el boton 2 ********************************
@@ -149,6 +164,9 @@ void loop(){
     guardarserial = Serial.read();
     }
    if (digitalRead(Boton2) == LOW){
+    tone(buzzer, 1000);
+    delay(1000);
+    noTone(buzzer);
     myFile = SD.open("Datos.txt", FILE_WRITE);
 
     if (myFile){
@@ -160,12 +178,11 @@ void loop(){
     }else{
       Serial.println("Error de almacenemiento");
       delay(250);
-    }    
+    }
    }
   
-
 }
-
+//**************************************************************************************************************************************
 //***************************************************************************************************************************************
 // Función para inicializar LCD
 //***************************************************************************************************************************************
@@ -516,4 +533,3 @@ void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int 
     }
   digitalWrite(LCD_CS, HIGH);
 }
-
